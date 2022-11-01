@@ -1,32 +1,54 @@
-<script setup>
+<script>
 import AppLayout from '@/Layouts/AppLayout.vue';
 import Pagination from '@/Components/Pagination.vue'
-import {Head, Link, useForm} from '@inertiajs/inertia-vue3';
+import {Link, useForm} from '@inertiajs/inertia-vue3';
 import { Icon } from '@iconify/vue';
 
-mixin: ['formatting_time']
-
-const form = useForm({
-    name: '',
-    sort: '',
-    calendar: {
-        start: '',
-        end: '',
+export default {
+    props: ['transactions'],
+    components: {
+        AppLayout,
+        Pagination,
+        Link,
+        Icon
+    },
+    mixin: ['formatting_time'],
+    data() {
+        return {
+            selected: '',
+            form: useForm({
+                name: '',
+                sort: 'desc',
+                from_date: null,
+                to_date: null,
+            }),
+            calendar: {
+                start: '',
+                end: '',
+            }
+        }
+    },
+    methods: {
+        search(sort) {
+            this.form.from_date = this.calendar.start
+            this.form.to_date = this.calendar.end
+            this.form.sort = sort
+            this.form.get(this.route('transactions'), {
+                preserveState: true,
+                preserveScroll: true,
+            })
+        },
+        onDelete() {
+            this.$inertia.delete(this.route('transaction.destroy', this.selected), {
+                preserveScroll: true,
+                preserveState: true,
+                onFinish: () => {
+                    document.getElementById('modal-delete').click()
+                }
+            })
+        }
     }
-})
-
-const search = (sort = null) => {
-    if(sort !== null)
-        form.sort = sort
-
-    form.get(route('transactions'), {
-        preserveState: true,
-    })
 }
-
-defineProps({
-    transactions: Array
-})
 </script>
 
 <template>
@@ -42,15 +64,12 @@ defineProps({
                 <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
                     <div class="p-8">
                         <h1 class="text-2xl font-bold mb-3">Transactions</h1>
-                        <div class="grid grid-cols-4">
+                        <div class="grid grid-cols-4 gap-4">
                             <div class="lg:col-span-1 col-span-4">
                                 <div class="space-y-4 mb-6">
                                     <div>
-                                        <Link class="btn bg-rose-400 border-0">Tambah Data</Link>
-                                    </div>
-                                    <div>
                                         <div class="flex justify-end items-center gap-3">
-                                            <input @keyup="search" v-model="form.name" type="text" placeholder="Search by name" class="input focus:border-red-700 focus:outline-red-500 input-bordered w-full" />
+                                            <input @keyup="search(form.sort)" v-model="form.name" type="text" placeholder="Search by product name" class="input focus:border-red-700 focus:outline-red-500 input-bordered w-full" />
                                             <div class="dropdown dropdown-end dropdown-hover dropdown-bottom">
                                                 <label tabindex="0" class="btn btn-ghost">
                                                     <Icon icon="bxs:sort-alt" />
@@ -63,7 +82,7 @@ defineProps({
                                         </div>
                                     </div>
                                     <div>
-                                        <v-date-picker class="w-full" color="red" is-expanded v-model="calendar" is-range/>
+                                        <v-date-picker @click="search(form.sort)" class="w-full" color="red" is-expanded v-model="calendar" is-range/>
                                     </div>
                                 </div>
 
@@ -75,24 +94,26 @@ defineProps({
                                             <thead>
                                             <tr>
                                                 <th></th>
-                                                <th>Name</th>
-                                                <th>Price</th>
-                                                <th>Photo</th>
-                                                <th>Uploaded at</th>
-                                                <th v-if="$page.props.user.role === 'admin'">Action</th>
+                                                <th>Product</th>
+                                                <th>User</th>
+                                                <th>Code Transaction</th>
+                                                <th>Status</th>
+                                                <th>Created at</th>
+                                                <th>Action</th>
                                             </tr>
                                             </thead>
                                             <tbody>
-                                            <tr v-for="(item, index) in products.data" :key="`product-${item.id}-${index}`">
-                                                <th>{{ (products.current_page - 1) * products.per_page + index + 1 }}</th>
-                                                <td>{{ item.name }}</td>
-                                                <td>{{ item.price }}</td>
-                                                <td>{{ item.photo ? 'No Photo' : item.photo }}</td>
+                                            <tr v-for="(item, index) in transactions.data" :key="`product-${item.id}-${index}`">
+                                                <th>{{ (transactions.current_page - 1) * transactions.per_page + index + 1 }}</th>
+                                                <td>{{ item.product.name }}</td>
+                                                <td>{{ item.user.name }}</td>
+                                                <td>{{ item.code }}</td>
+                                                <td>{{ item.status }}</td>
                                                 <td>{{ formatting_time(item.created_at) }}</td>
                                                 <td>
                                                     <div class="space-x-2">
-                                                        <Link class="btn btn-success">Edit</Link>
-                                                        <label for="modal-delete" class="btn btn-error">Hapus</label>
+                                                        <Link :href="route('transaction.edit', item.hash)" class="btn btn-success">Edit</Link>
+                                                        <label @click="selected = item.hash" for="modal-delete" class="btn btn-error">Hapus</label>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -117,7 +138,7 @@ defineProps({
                     <p class="py-4">Data produk akan hilang secara permanen dari sistem</p>
                     <div class="modal-action">
                         <label for="modal-delete" class="btn btn-ghost">Batal</label>
-                        <button class="btn btn-error">Hapus</button>
+                        <button @click="onDelete" class="btn btn-error">Hapus</button>
                     </div>
                 </label>
             </label>

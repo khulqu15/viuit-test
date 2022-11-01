@@ -14,15 +14,17 @@ class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
-    public function upload_photo(Request $request, $model, $path): string|null
+    public function upload_photo(Request $request, $model, $path, $data): string|null
     {
         if($request->hasFile('photo'))
         {
             $file = $request->file('photo');
             if (!File::isDirectory($path))
-            {
                 File::makeDirectory($path, 0777, true, true);
-            }
+
+            if($data && $data->photo)
+                unlink($path.$data->photo);
+
             $filename = $model.'-'.time().'-'.uniqid().'.'.$file->extension();
             $img = Image::make($file->path());
             $img->resize(750, 750, function ($constraint) {

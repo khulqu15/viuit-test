@@ -1,26 +1,46 @@
-<script setup>
+<script>
 import AppLayout from '@/Layouts/AppLayout.vue';
 import Pagination from '@/Components/Pagination.vue'
-import {Head, Link, useForm} from '@inertiajs/inertia-vue3';
+import {Link, useForm} from '@inertiajs/inertia-vue3';
 import { Icon } from '@iconify/vue';
 
-mixin: ['formatting_time']
-
-const form = useForm({
-    name: '',
-    sort: 'desc',
-})
-
-const search = (sort) => {
-    form.sort = sort
-    form.get(route('users'), {
-        preserveState: true,
-    })
+export default {
+    props: ['users'],
+    components: {
+        AppLayout,
+        Pagination,
+        Link,
+        Icon,
+    },
+    mixin: ['formatting_time'],
+    data() {
+        return {
+            selected: '',
+            form: useForm({
+                name: '',
+                sort: 'desc',
+                role: '',
+            })
+        }
+    },
+    methods: {
+        search(sort) {
+            form.sort = sort
+            form.get(route('users'), {
+                preserveState: true,
+            })
+        },
+        onDelete() {
+            this.$inertia.delete(this.route('user.destroy', this.selected), {
+                preserveScroll: true,
+                preserveState: true,
+                onFinish: () => {
+                    document.getElementById('modal-delete').click()
+                }
+            })
+        }
+    }
 }
-
-defineProps({
-    users: Array
-})
 </script>
 
 <template>
@@ -38,11 +58,16 @@ defineProps({
                         <h1 class="text-2xl font-bold mb-3">Users</h1>
                         <div class="flex justify-between mb-6">
                             <div>
-                                <Link class="btn bg-rose-400 border-0">Add User</Link>
+                                <Link :href="route('user.create')" class="btn bg-rose-400 border-0">Add User</Link>
                             </div>
                             <div>
                                 <div class="flex justify-end items-center gap-3">
                                     <input @keyup="search(form.sort)" v-model="form.name" type="text" placeholder="Search by name" class="input focus:border-red-700 focus:outline-red-500 input-bordered w-full" />
+                                    <select @change="search(form.sort)" v-model="form.role" class="select active:border-rose-600">
+                                        <option value="">All Role</option>
+                                        <option value="guest">Guest</option>
+                                        <option value="admin">Admin</option>
+                                    </select>
                                     <div class="dropdown dropdown-end dropdown-hover dropdown-bottom">
                                         <label tabindex="0" class="btn btn-ghost">
                                             <Icon icon="bxs:sort-alt" />
@@ -63,6 +88,7 @@ defineProps({
                                         <th></th>
                                         <th>Name</th>
                                         <th>Email</th>
+                                        <th>Role</th>
                                         <th>Action</th>
                                     </tr>
                                     </thead>
@@ -71,10 +97,11 @@ defineProps({
                                         <th>{{ (users.current_page - 1) * users.per_page + index + 1 }}</th>
                                         <td>{{ item.name }}</td>
                                         <td>{{ item.email }}</td>
+                                        <td>{{ item.role }}</td>
                                         <td>
                                             <div class="space-x-2">
-                                                <Link class="btn btn-success">Edit</Link>
-                                                <label for="modal-delete" class="btn btn-error">Hapus</label>
+                                                <Link :href="route('user.edit', item.hash)" class="btn btn-success">Edit</Link>
+                                                <label @click="selected = item.hash" for="modal-delete" class="btn btn-error">Hapus</label>
                                             </div>
                                         </td>
                                     </tr>
@@ -93,11 +120,11 @@ defineProps({
             <input type="checkbox" id="modal-delete" class="modal-toggle" />
             <label for="modal-delete" class="modal modal-bottom sm:modal-middle">
                 <label for="" class="modal-box text-center">
-                    <h3 class="font-bold text-lg">Hapus Produk ?</h3>
-                    <p class="py-4">Data produk akan hilang secara permanen dari sistem</p>
+                    <h3 class="font-bold text-lg">Hapus User ?</h3>
+                    <p class="py-4">Data user akan hilang secara permanen dari sistem</p>
                     <div class="modal-action">
                         <label for="modal-delete" class="btn btn-ghost">Batal</label>
-                        <button class="btn btn-error">Hapus</button>
+                        <button @click="onDelete()" class="btn btn-error">Hapus</button>
                     </div>
                 </label>
             </label>

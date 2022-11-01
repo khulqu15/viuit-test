@@ -19,7 +19,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users');
             $table->string('code')->unique();
             $table->integer('quantity');
-            $table->dateTime('verified_at');
+            $table->dateTime('verified_at')->nullable();
             $table->timestamps();
         });
     }

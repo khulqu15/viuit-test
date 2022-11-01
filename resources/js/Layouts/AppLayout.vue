@@ -1,13 +1,15 @@
 <script setup>
 import { ref } from 'vue';
 import { Inertia } from '@inertiajs/inertia';
-import { Head, Link } from '@inertiajs/inertia-vue3';
+import { Head, Link, usePage } from '@inertiajs/inertia-vue3';
 import { Icon } from '@iconify/vue';
 import Banner from '@/Components/Banner.vue';
 
 defineProps({
     title: String,
 });
+
+const { flash } = usePage().props
 
 const showingNavigationDropdown = ref(false);
 
@@ -60,6 +62,20 @@ const logout = () => {
                     <!-- Page Content -->
                     <main>
                         <slot />
+
+                        <div class="toast">
+                            <div v-if="$page.props.flash.success" class="alert alert-success">
+                                <div>
+                                    <span>{{ $page.props.flash.success }}</span>
+                                </div>
+                            </div>
+                            <div v-if="$page.props.flash.error" class="alert alert">
+                                <div>
+                                    <span>{{ $page.props.flash.error }}</span>
+                                </div>
+                            </div>
+                        </div>
+
                     </main>
                 </div>
                 <div class="drawer-side">
@@ -76,10 +92,10 @@ const logout = () => {
                         <li>
                             <Link :class="{'bg-rose-400 text-white shadow': route().current('products')}" class="active:bg-rose-400" :href="route('products')">Product</Link>
                         </li>
-                        <li>
+                        <li v-if="$page.props.user.role === 'admin'">
                             <Link :class="{'bg-rose-400 text-white shadow': route().current('transactions')}" class="active:bg-rose-400" :href="route('transactions')">Transaction</Link>
                         </li>
-                        <li>
+                        <li v-if="$page.props.user.role === 'admin'">
                             <Link :class="{'bg-rose-400 text-white shadow': route().current('users')}" class="active:bg-rose-400" :href="route('users')">User</Link>
                         </li>
                     </ul>

@@ -9,6 +9,9 @@ import { ZiggyVue } from '../../vendor/tightenco/ziggy/dist/vue.m';
 import moment from "moment";
 import 'v-calendar/dist/style.css';
 import VCalendar from 'v-calendar'
+import toast from '@k90mirzaei/vue-toast'
+import '@k90mirzaei/vue-toast/dist/index.css'
+import {Inertia} from "@inertiajs/inertia";
 
 const appName = window.document.getElementsByTagName('title')[0]?.innerText || 'Laravel';
 
@@ -27,6 +30,7 @@ createInertiaApp({
             })
             .use(ZiggyVue, Ziggy)
             .use(VCalendar)
+            .use(toast)
             .mount(el);
     },
 });
