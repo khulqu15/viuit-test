@@ -35,6 +35,25 @@ Route::middleware([
 ])->group(function () {
     Route::get('/dashboard', [PageController::class, 'dashboard'])->name('dashboard');
     Route::get('/products', [ProductController::class, 'index'])->name('products');
-    Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions');
-    Route::get('/users', [UserController::class, 'index'])->name('users');
+    Route::post('/transaction/store', [TransactionController::class, 'store'])->name('transaction.store');
+
+    Route::middleware(['admin.role'])->group(function () {
+        Route::get('/product/create', [ProductController::class, 'create'])->name('product.create');
+        Route::post('/product/store', [ProductController::class, 'store'])->name('product.store');
+        Route::get('/product/edit/{product}', [ProductController::class, 'edit'])->name('product.edit');
+        Route::patch('/product/update/{product}', [ProductController::class, 'update'])->name('product.update');
+        Route::delete('/product/destroy/{product}', [ProductController::class, 'destroy'])->name('product.destroy');
+
+        Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions');
+        Route::get('/transaction/edit/{transaction}', [TransactionController::class, 'edit'])->name('transaction.edit');
+        Route::patch('/transaction/update/{transaction}', [TransactionController::class, 'update'])->name('transaction.update');
+        Route::delete('/transaction/destroy/{transaction}', [TransactionController::class, 'destroy'])->name('transaction.destroy');
+
+        Route::get('/users', [UserController::class, 'index'])->name('users');
+        Route::get('/user/create', [UserController::class, 'create'])->name('user.create');
+        Route::post('/user/store', [UserController::class, 'store'])->name('user.store');
+        Route::get('/user/edit/{user}', [UserController::class, 'edit'])->name('user.edit');
+        Route::patch('/user/update/{user}', [UserController::class, 'update'])->name('user.update');
+        Route::delete('/user/destroy/{user}', [UserController::class, 'destroy'])->name('user.destroy');
+    });
 });

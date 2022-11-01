@@ -20,7 +20,6 @@ class ProductTableSeeder extends Seeder
             $product = new Product();
             $product->name = "Product $i";
             $product->price = $i * 1000;
-            $product->photo = 'photo_product.png';
             $product->description = 'lorem ipsum';
             $product->user_id = 1;
             $product->save();
